@@ -1,4 +1,4 @@
-const processMessage = require('./process-message');
+const handleMessage = require('./process-message');
 module.exports = (req, res) => {
   console.log("HOOK!");
   if (req.body.object === 'page') {
@@ -8,10 +8,10 @@ module.exports = (req, res) => {
       entry.messaging.forEach(event => {
         if (event.message && event.message.text) {
           console.log("---", "processMessage");
-          processMessage(event);
+          handleMessage.processMessage(event);
         } else if(event.postback && event.postback.payload === "Greeting") {
           console.log("---", "greetingMessage");
-          //processGreeting(event);
+          handleMessage.processGreeting(event);
         }
       });
     });

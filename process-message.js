@@ -70,7 +70,44 @@ const sendButtons = (userId, text, buttons) => {
   }); 
 }
 
-module.exports = (event) => {
+module.exports.processGreeting = (event) => {
+  const userId = event.sender.id;
+  const message = "Greetings! Choose an option to continue."
+
+  const request = {
+    session: sessionPath,
+    queryInput: {
+      text: {
+        text: message,
+        languageCode: languageCode,
+      },
+    },
+  };
+
+  sessionClient
+    .detectIntent(request)
+    .then(responses => {
+      console.log("Sending buttons...");
+      let buttons = [
+               {
+                "type":"postback",
+                "payload":"data",
+                "title":"Show all reminders"
+              },  
+              {
+                "type":"postback",
+                "payload":"data",
+                "title":"Delete all reminders"
+              }     
+            ];            
+      return sendButtons(userId, "Choose options", buttons);
+    })
+    .catch(err => {
+      console.error('ERROR: processGreeting', err);
+    });
+}
+
+module.exports.processMessage = (event) => {
   const userId = event.sender.id;
   const message = event.message.text;
 
@@ -91,28 +128,6 @@ module.exports = (event) => {
       console.log("Recieving from Dialogflow...");      
       const result = responses[0].queryResult;
       return sendTextMessage(userId, result.fulfillmentText);
-    }).then(responses => {
-      /*console.log("Sending buttons...");
-      let buttons = [
-               {
-                "type":"postback",
-                "payload":"data",
-                "title":"Show all reminders"
-              },  
-              {
-                "type":"postback",
-                "payload":"data",
-                "title":"Delete all reminders"
-              }     
-            ];            
-            /*
-        let button = [{
-            "type":"web_url",
-            "url":"https://petersapparel.parseapp.com",
-            "title":"Show Website"
-          }];
-        */
-      //return sendButtons(userId, "Choose options", buttons);
     })
     .catch(err => {
       console.error('!ERROR:', err);
@@ -121,19 +136,6 @@ module.exports = (event) => {
 
 /*
 
-curl -X POST -H "Content-Type: application/json" -d '{
-  "setting_type":"call_to_actions",
-  "thread_state":"new_thread",
-  "call_to_actions":[
-    {
-      "payload":"Greeting"
-    }
-  ]
-}' "https://graph.facebook.com/v2.6/me/thread_settings?access_token=EAAJTOmYGRy4BAKEPdhgQVZAEuFPfRxYVdzScMC8UVFGPb2ejm0hahh6bw2wv7RZBqB7ymEVWRZAEwYwgEOd5cgzFIMJgyPVyBbFx656xm8Bgc227TKSZA6TfZAynNgix8nZCXG6sO1G33dXEXCsZCosj2UtXT4JisE4WFDPdE7YUwZDZD"
 
-curl -X POST -H "Content-Type: application/json" -d '{
-  "get_started": {"payload": "<postback_payload>"}
-}'
- "https://graph.facebook.com/v2.6/me/messenger_profile?access_token=<PAGE_ACCESS_TOKEN>"
 
 */
