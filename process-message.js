@@ -4,9 +4,12 @@ const fetch = require('node-fetch');
 const projectId = 'new-agent-69b89'; //https://dialogflow.com/docs/agents#settings
 const sessionId = '123456';
 const languageCode = 'en-US';
-
+const greetingPayload = 'Greeting';
+const createReminder = 'Create reminder';
+const showAllReminders = 'Show all reminders';
 const dialogflow = require('dialogflow');
-
+const welcomeAction = "input.welcome";
+  
 const config = {
   credentials: {
     private_key: process.env.DIALOGFLOW_PRIVATE_KEY,
@@ -21,6 +24,14 @@ const sessionPath = sessionClient.sessionPath(projectId, sessionId);
 // Remember the Page Access Token you got from Facebook earlier?
 // Don't forget to add it to your `variables.env` file.
 const { FACEBOOK_ACCESS_TOKEN } = process.env;
+
+const generateButton = (text) => {
+  return  {
+                "type":"postback",
+                "payload":"data",
+                "title": text
+  }  
+}
 
 const sendTextMessage = (userId, text) => {
   return fetch(
@@ -70,6 +81,55 @@ const sendButtons = (userId, text, buttons) => {
   }); 
 }
 
+const getHookInputForDialogFlow = (event) => {
+    if (event.message && event.message.text) {
+      return event.message.text;
+    } else if(event.postback && event.postback.payload && event.postback.payload === greetingPayload) {
+      return event.postback.payload;
+    } else {
+      return null;
+    }
+};
+
+module.exports.processHook = (event) => {
+  const userId = event.sender.id;
+  const message = getHookInputForDialogFlow(event);
+
+  if(message === null) return;
+
+  const request = {
+    session: sessionPath,
+    queryInput: {
+      text: {
+        text: message,
+        languageCode: languageCode,
+      },
+    },
+  };
+
+  sessionClient
+    .detectIntent(request)
+    .then(responses => {
+      //console.log(JSON.stringify(myObject, null, 4));
+      console.log("Recieving from Dialogflow...");      
+      const result = responses[0].queryResult;
+      console.log(JSON.stringify(result, null, 4));
+      if(result.action === welcomeAction){
+        var buttons = [generateButton(createReminder), generateButton(showAllReminders)];
+        return sendButtons(userId, result.fulfillmentText, buttons);
+      } else {
+        return sendTextMessage(userId, result.fulfillmentText);
+      }
+    })
+    .catch(err => {
+      console.error('!ERROR:', err);
+    });
+}
+
+
+
+
+/*
 module.exports.processGreeting = (event) => {
   const userId = event.sender.id;
   const message = "Greetings! Choose an option to continue."
@@ -106,36 +166,5 @@ module.exports.processGreeting = (event) => {
       console.error('ERROR: processGreeting', err);
     });
 }
-
-module.exports.processMessage = (event) => {
-  const userId = event.sender.id;
-  const message = event.message.text;
-
-  const request = {
-    session: sessionPath,
-    queryInput: {
-      text: {
-        text: message,
-        languageCode: languageCode,
-      },
-    },
-  };
-
-  sessionClient
-    .detectIntent(request)
-    .then(responses => {
-      //console.log(JSON.stringify(myObject, null, 4));
-      console.log("Recieving from Dialogflow...");      
-      const result = responses[0].queryResult;
-      return sendTextMessage(userId, result.fulfillmentText);
-    })
-    .catch(err => {
-      console.error('!ERROR:', err);
-    });
-}
-
-/*
-
-
-
 */
+

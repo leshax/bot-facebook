@@ -6,13 +6,7 @@ module.exports = (req, res) => {
     req.body.entry.forEach(entry => {
       //console.log("--", JSON.stringify(entry));
       entry.messaging.forEach(event => {
-        if (event.message && event.message.text) {
-          console.log("---", "processMessage");
-          handleMessage.processMessage(event);
-        } else if(event.postback && event.postback.payload === "Greeting") {
-          console.log("---", "greetingMessage");
-          handleMessage.processGreeting(event);
-        }
+          handleMessage.processHook(event);
       });
     });
     res.status(200).end();
