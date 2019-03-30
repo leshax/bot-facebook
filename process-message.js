@@ -1,12 +1,13 @@
 const fetch = require('node-fetch');
 
 // You can find your project ID in your Dialogflow agent settings
-const projectId = 'new-agent-69b89'; //https://dialogflow.com/docs/agents#settings
+const projectId = 'chatbot-235714'; //https://dialogflow.com/docs/agents#settings
 const sessionId = '123456';
 const languageCode = 'en-US';
 const greetingPayload = 'Greeting';
-const createReminder = 'Create reminder';
+const createReminder = 'Set a reminder';
 const showAllReminders = 'Show all reminders';
+const setReminderAction = 'setReminder';
 const dialogflow = require('dialogflow');
 const welcomeAction = "input.welcome";
   
@@ -17,6 +18,7 @@ const config = {
   }
 };
 
+
 const sessionClient = new dialogflow.SessionsClient(config);
 
 const sessionPath = sessionClient.sessionPath(projectId, sessionId);
@@ -25,10 +27,10 @@ const sessionPath = sessionClient.sessionPath(projectId, sessionId);
 // Don't forget to add it to your `variables.env` file.
 const { FACEBOOK_ACCESS_TOKEN } = process.env;
 
-const generateButton = (text) => {
+const generateButton = (text, payload) => {
   return  {
                 "type":"postback",
-                "payload":"data",
+                "payload": text,
                 "title": text
   }  
 }
@@ -84,11 +86,77 @@ const sendButtons = (userId, text, buttons) => {
 const getHookInputForDialogFlow = (event) => {
     if (event.message && event.message.text) {
       return event.message.text;
-    } else if(event.postback && event.postback.payload && event.postback.payload === greetingPayload) {
+    } else if(event.postback && event.postback.payload) {
       return event.postback.payload;
     } else {
+      //console.log(JSON.stringify(event.postback));
+      console.error("Unkown messenger hook");
       return null;
     }
+};
+
+const sendMessage = (response, userId) => {
+      console.log("Recieving from Dialogflow...");      
+      const result = response.queryResult;
+      //console.log(JSON.stringify(result, null, 4));
+      if(result.action === welcomeAction){
+        var buttons = [generateButton(createReminder), generateButton(showAllReminders)];
+        return sendButtons(userId, result.fulfillmentText, buttons);
+      } else {
+        return sendTextMessage(userId, result.fulfillmentText);
+      }     
+      //console.log(JSON.stringify(response));
+};
+
+const setReminder = (response, userId) => {
+ console.log("Set reminder");
+}
+
+const isConversationFinished = (response) => {  
+  
+  if(response.queryResult.diagnosticInfo &&
+    response.queryResult.diagnosticInfo.fields &&
+    response.queryResult.diagnosticInfo.fields.end_conversation.boolValue) {
+    /*
+    console.log("response.queryResult.diagnosticInfo" ,response.queryResult.diagnosticInfo);
+    console.log("response.queryResult.diagnosticInfo.fields", response.queryResult.diagnosticInfo.fields);
+    console.log("response.queryResult.diagnosticInfo.fields.end_converstion.boolValue", response.queryResult.diagnosticInfo.fields.end_conversation.boolValue);
+    console.log("isConversationFinished", true);
+    */
+    return true;
+  } else {
+    /*console.log("response.queryResult.diagnosticInfo" ,response.queryResult.diagnosticInfo);
+    console.log("response.queryResult.diagnosticInfo.fields", response.queryResult.diagnosticInfo.fields);
+    console.log("response.queryResult.diagnosticInfo.fields.end_converstion.boolValue", response.queryResult.diagnosticInfo.fields.end_conversation.boolValue);
+    console.log("isConversationFinished", false);*/
+    return false;
+  }
+} 
+
+const isReminderInfoReady = (response) => {
+  console.log("isReminderInfoReady response.queryResult.action" , response.queryResult.action);
+  console.log("isReminderInfoReady response.queryResult.action " , response.queryResult.action);
+  console.log("isReminderInfoReady isConversationFinished" , isConversationFinished(response));
+  console.dir(response);
+  if(response.queryResult.action === setReminderAction 
+    && response.queryResult.allRequiredParamsPresent 
+    && isConversationFinished(response)){
+    console.log("isReminderInfoReady" , true);
+    return true;
+  } else {
+    console.log("isReminderInfoReady" , false);
+    return false;
+  }
+}
+
+const handleReminderActions = (response, userId) => {
+  console.log("handleReminderActions");
+  if(isReminderInfoReady(response)){
+    setReminder(response);
+    return response;
+  } else {
+    return response;
+  }
 };
 
 module.exports.processHook = (event) => {
@@ -109,17 +177,11 @@ module.exports.processHook = (event) => {
 
   sessionClient
     .detectIntent(request)
-    .then(responses => {
-      //console.log(JSON.stringify(myObject, null, 4));
-      console.log("Recieving from Dialogflow...");      
-      const result = responses[0].queryResult;
-      console.log(JSON.stringify(result, null, 4));
-      if(result.action === welcomeAction){
-        var buttons = [generateButton(createReminder), generateButton(showAllReminders)];
-        return sendButtons(userId, result.fulfillmentText, buttons);
-      } else {
-        return sendTextMessage(userId, result.fulfillmentText);
-      }
+    .then(responses => {      
+      return handleReminderActions(responses[0], userId);
+    })
+    .then(response => {
+      return sendMessage(response, userId);
     })
     .catch(err => {
       console.error('!ERROR:', err);
