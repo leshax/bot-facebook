@@ -1,87 +1,31 @@
-const fetch = require('node-fetch');
 
-// You can find your project ID in your Dialogflow agent settings
-const projectId = 'chatbot-235714'; //https://dialogflow.com/docs/agents#settings
-const sessionId = '123456';
-const languageCode = 'en-US';
-const greetingPayload = 'Greeting';
-const createReminder = 'Set a reminder';
-const showAllReminders = 'Show all reminders';
-const setReminderAction = 'setReminder';
 const dialogflow = require('dialogflow');
-const welcomeAction = "input.welcome";
-  
+const constants = require('./constants');
+const facebookApi = require('./facebookApi'); 
 const config = {
   credentials: {
     private_key: process.env.DIALOGFLOW_PRIVATE_KEY,
     client_email: process.env.DIALOGFLOW_CLIENT_EMAIL
   }
 };
-
-
+var userCache = { };
+//2107839096000983
 const sessionClient = new dialogflow.SessionsClient(config);
 
-const sessionPath = sessionClient.sessionPath(projectId, sessionId);
-
-// Remember the Page Access Token you got from Facebook earlier?
-// Don't forget to add it to your `variables.env` file.
-const { FACEBOOK_ACCESS_TOKEN } = process.env;
-
-const generateButton = (text, payload) => {
-  return  {
-                "type":"postback",
-                "payload": text,
-                "title": text
-  }  
-}
-
-const sendTextMessage = (userId, text) => {
-  return fetch(
-    `https://graph.facebook.com/v2.6/me/messages?access_token=${FACEBOOK_ACCESS_TOKEN}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      method: 'POST',
-      body: JSON.stringify({
-        messaging_type: 'RESPONSE',
-        recipient: {
-          id: userId,
-        },
-        message: {
-          text,
-        },
-      }),
-    }
-  );
-}
-
-const sendButtons = (userId, text, buttons) => {
-   return fetch(
-    `https://graph.facebook.com/v2.6/me/messages?access_token=${FACEBOOK_ACCESS_TOKEN}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      method: 'POST',
-      body: JSON.stringify({
-        messaging_type: 'RESPONSE',
-        recipient: {
-          id: userId,
-        },
-        message: {
-          "attachment":{
-            "type":"template",
-            "payload":{
-              "template_type":"button",
-              "text": text,
-              "buttons": buttons
-          }
-        }
-      }
-    }),
-  }); 
-}
+const sendMessage = (response, userId) => {
+      console.log("Recieving from Dialogflow...");      
+      const result = response.queryResult;
+      //console.log(JSON.stringify(result, null, 4));
+      if(result.action === constants.WELCOME_ACTION){
+        var buttons = [facebookApi.generateButton(constants.CREATE_REMINDER),
+         facebookApi.generateButton(constants.SHOW_ALL_REMINDERS)];
+        return facebookApi.sendButtons(userId, result.fulfillmentText, buttons);
+      } else {
+        console.log("sendMessage...", userId, result.fulfillmentText);
+        return facebookApi.sendTextMessage(userId, result.fulfillmentText);
+      }     
+      //console.log(JSON.stringify(response));
+};
 
 const getHookInputForDialogFlow = (event) => {
     if (event.message && event.message.text) {
@@ -95,22 +39,37 @@ const getHookInputForDialogFlow = (event) => {
     }
 };
 
-const sendMessage = (response, userId) => {
-      console.log("Recieving from Dialogflow...");      
-      const result = response.queryResult;
-      //console.log(JSON.stringify(result, null, 4));
-      if(result.action === welcomeAction){
-        var buttons = [generateButton(createReminder), generateButton(showAllReminders)];
-        return sendButtons(userId, result.fulfillmentText, buttons);
-      } else {
-        return sendTextMessage(userId, result.fulfillmentText);
-      }     
-      //console.log(JSON.stringify(response));
+
+
+const setReminder = async (response, userId) => {
+  console.log("getTimeZoneByUserId...");
+  let timeZone = await facebookApi.getTimeZoneByUserId(userId);
+  let time = response.queryResult.parameters.fields.time.stringValue;
+  //console.dir(timeZone, {depth: null});
+  //facebookApi.getTimeZoneByUserId(userId).then(res => res.json())
+   // .then(json => console.log(json));
+
+
+
+
+
+  console.log(time);
+  //return response;
+  //console.dir(timezone);
+}
+
+const handleReminderActions = async (response, userId) => {
+  console.log("handleReminderActions");
+  console.log(response.queryResult.parameters);
+  //return response;
+  if(isReminderInfoReady(response)){  
+    await setReminder(response, userId);
+  } else {
+   
+  }
+   //return response;
 };
 
-const setReminder = (response, userId) => {
- console.log("Set reminder");
-}
 
 const isConversationFinished = (response) => {  
   
@@ -137,8 +96,8 @@ const isReminderInfoReady = (response) => {
   console.log("isReminderInfoReady response.queryResult.action" , response.queryResult.action);
   console.log("isReminderInfoReady response.queryResult.action " , response.queryResult.action);
   console.log("isReminderInfoReady isConversationFinished" , isConversationFinished(response));
-  console.dir(response);
-  if(response.queryResult.action === setReminderAction 
+  //console.dir(response);
+  if(response.queryResult.action === constants.SET_REMINDER_ACTION 
     && response.queryResult.allRequiredParamsPresent 
     && isConversationFinished(response)){
     console.log("isReminderInfoReady" , true);
@@ -149,84 +108,42 @@ const isReminderInfoReady = (response) => {
   }
 }
 
-const handleReminderActions = (response, userId) => {
-  console.log("handleReminderActions");
-  if(isReminderInfoReady(response)){
-    setReminder(response);
-    return response;
+const getUserTimeZone = async (userId) => {
+  if(userCache[userId]){
+    return userCache[userId];
   } else {
-    return response;
+    return await facebookApi.getTimeZoneByUserId(userId);
   }
-};
+}
 
-module.exports.processHook = (event) => {
+module.exports.processHook = async (event) => {
   const userId = event.sender.id;
   const message = getHookInputForDialogFlow(event);
-
+  const sessionPath = sessionClient.sessionPath(constants.PROJECT_ID, userId);
   if(message === null) return;
 
+  const offset = getUserTimeZone(userId);
+
+  console.log(offset);
   const request = {
     session: sessionPath,
     queryInput: {
       text: {
         text: message,
-        languageCode: languageCode,
-      },
+        languageCode: constants.LANGUAGE_CODE,
+      }      
     },
+    queryParams: {
+        timeZone: "America/New_York"
+      }
   };
-
-  sessionClient
-    .detectIntent(request)
-    .then(responses => {      
-      return handleReminderActions(responses[0], userId);
-    })
-    .then(response => {
-      return sendMessage(response, userId);
-    })
-    .catch(err => {
-      console.error('!ERROR:', err);
-    });
+  try {
+    let responses = await sessionClient.detectIntent(request);
+    await handleReminderActions(responses[0], userId);
+    await sendMessage(responses[0], userId);
+  } catch (e) {
+    console.error(constants.PROCESS_HOOK_ERROR)
+    console.dir(e);
+  }
+ 
 }
-
-
-
-
-/*
-module.exports.processGreeting = (event) => {
-  const userId = event.sender.id;
-  const message = "Greetings! Choose an option to continue."
-
-  const request = {
-    session: sessionPath,
-    queryInput: {
-      text: {
-        text: message,
-        languageCode: languageCode,
-      },
-    },
-  };
-
-  sessionClient
-    .detectIntent(request)
-    .then(responses => {
-      console.log("Sending buttons...");
-      let buttons = [
-               {
-                "type":"postback",
-                "payload":"data",
-                "title":"Show all reminders"
-              },  
-              {
-                "type":"postback",
-                "payload":"data",
-                "title":"Delete all reminders"
-              }     
-            ];            
-      return sendButtons(userId, "Choose options", buttons);
-    })
-    .catch(err => {
-      console.error('ERROR: processGreeting', err);
-    });
-}
-*/
-
