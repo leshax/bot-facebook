@@ -40,22 +40,27 @@ const getHookInputForDialogFlow = (event) => {
     }
 };
 
-
-
+const getUserTimeZoneName = async(userId) => {
+  var timezone;
+  let location = await facebookApi.getLocationByUserId(userId);
+  //50.4501,30.5234
+  console.log(await facebookApi.getTimezoneByCoordinates(50.4501, 30.5234))  
+  if(location.latitude && location.latitude){
+    timezone = await facebookApi.getTimezoneByCoordinates(location.latitude, location.longitude);
+  } else {
+     timezone = constants.DEFAULT_TIMEZONE;
+  }
+  return timezone
+}
 const setReminder = async (response, userId) => {
-  console.log("getTimeZoneByUserId...");
-  //let timeZone = await facebookApi.getTimeZoneByUserId(userId);
-  let time = response.queryResult.parameters.fields.time.stringValue;
-  //console.dir(timeZone, {depth: null});
-  //facebookApi.getTimeZoneByUserId(userId).then(res => res.json())
-   // .then(json => console.log(json));
+  
 
 
 
 
 
-  console.log(time);
-  //return response;
+  //console.log(time);
+  return response;
   //console.dir(timezone);
 }
 
@@ -121,11 +126,10 @@ module.exports.processHook = async (event) => {
   const userId = event.sender.id;
   const message = getHookInputForDialogFlow(event);
   const sessionPath = sessionClient.sessionPath(constants.PROJECT_ID, userId);
+
   if(message === null) return;
 
-  let location = await facebookApi.getLocationByUserId(userId);
-  console.log("location", location);
-  //let timezone = await 
+  let timezone = await getUserTimeZoneName(userId);
 
   const request = {
     session: sessionPath,
@@ -136,7 +140,7 @@ module.exports.processHook = async (event) => {
       }      
     },
     queryParams: {
-        timeZone: "Europe/Kaliningrad"
+        timeZone: timezone
     }
   };
   try {

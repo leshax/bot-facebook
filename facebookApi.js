@@ -1,6 +1,7 @@
 var constants = require('./constants');
 const fetch = require('node-fetch');
 const { FACEBOOK_ACCESS_TOKEN } = process.env;
+const { GOOGLE_API } = process.env;
 const sendButtons = (userId, text, buttons) => {
    return fetch(
     `https://graph.facebook.com/v3.2/me/messages?access_token=${FACEBOOK_ACCESS_TOKEN}`,
@@ -59,7 +60,7 @@ const generateButton = (text, payload) => {
 
 const getLocationByUserId = (userId) => {
  	return fetch(
-    `https://graph.facebook.com/v2.11/${userId}?fields=location{city,state,region_id}&access_token=${FACEBOOK_ACCESS_TOKEN}`,
+    `https://graph.facebook.com/v2.11/${userId}?fields=location&access_token=${FACEBOOK_ACCESS_TOKEN}`,
     {
       headers: {
         'Content-Type': constants.CONTENT_TYPE.JSON,
@@ -80,11 +81,23 @@ const getOffsetByUserId = (userId) => {
     }).then(res => res.json());
 };
 
+const getTimezoneByCoordinates = (latitude, longitude) =>{
+	const { REQUIRED_TIMESTAMP } = '1331161200';
+	return fetch(
+    `https://maps.googleapis.com/maps/api/timezone/json?location=${latitude},${longitude}&timestamp=${REQUIRED_TIMESTAMP}&key=${GOOGLE_API}`,
+    {
+      headers: {
+        'Content-Type': constants.CONTENT_TYPE.JSON,
+      },
+      method: 'GET'
+    }).then(res => res.json());
+}
 
 return module.exports = {
 	sendTextMessage: sendTextMessage,
 	sendButtons: sendButtons,
 	generateButton: generateButton,
 	getOffsetByUserId: getOffsetByUserId,
-	getLocationByUserId: getLocationByUserId
+	getLocationByUserId: getLocationByUserId,
+	getTimezoneByCoordinates: getTimezoneByCoordinates
 };

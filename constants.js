@@ -17,5 +17,6 @@ module.exports = Object.freeze({
     HUB_CHALLENGE: 'hub.challenge',
     CONTENT_TYPE : {
     	JSON: 'application/json'
-    }
+    },
+    DEFAULT_TIMEZONE: 'Europe/Kiev'
 });
