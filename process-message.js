@@ -10,6 +10,7 @@ const config = {
 };
 var userCache = { };
 //2107839096000983
+//353946818548326
 const sessionClient = new dialogflow.SessionsClient(config);
 
 const sendMessage = (response, userId) => {
@@ -43,7 +44,7 @@ const getHookInputForDialogFlow = (event) => {
 
 const setReminder = async (response, userId) => {
   console.log("getTimeZoneByUserId...");
-  let timeZone = await facebookApi.getTimeZoneByUserId(userId);
+  //let timeZone = await facebookApi.getTimeZoneByUserId(userId);
   let time = response.queryResult.parameters.fields.time.stringValue;
   //console.dir(timeZone, {depth: null});
   //facebookApi.getTimeZoneByUserId(userId).then(res => res.json())
@@ -107,7 +108,7 @@ const isReminderInfoReady = (response) => {
     return false;
   }
 }
-
+/*
 const getUserTimeZone = async (userId) => {
   if(userCache[userId]){
     return userCache[userId];
@@ -115,16 +116,17 @@ const getUserTimeZone = async (userId) => {
     return await facebookApi.getTimeZoneByUserId(userId);
   }
 }
-
+*/
 module.exports.processHook = async (event) => {
   const userId = event.sender.id;
   const message = getHookInputForDialogFlow(event);
   const sessionPath = sessionClient.sessionPath(constants.PROJECT_ID, userId);
   if(message === null) return;
 
-  const offset = getUserTimeZone(userId);
+  let location = await facebookApi.getLocationByUserId(userId);
+  console.log("location", location);
+  //let timezone = await 
 
-  console.log(offset);
   const request = {
     session: sessionPath,
     queryInput: {
@@ -134,8 +136,8 @@ module.exports.processHook = async (event) => {
       }      
     },
     queryParams: {
-        timeZone: "America/New_York"
-      }
+        timeZone: "Europe/Kaliningrad"
+    }
   };
   try {
     let responses = await sessionClient.detectIntent(request);

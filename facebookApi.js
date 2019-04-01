@@ -3,7 +3,7 @@ const fetch = require('node-fetch');
 const { FACEBOOK_ACCESS_TOKEN } = process.env;
 const sendButtons = (userId, text, buttons) => {
    return fetch(
-    `https://graph.facebook.com/v2.6/me/messages?access_token=${FACEBOOK_ACCESS_TOKEN}`,
+    `https://graph.facebook.com/v3.2/me/messages?access_token=${FACEBOOK_ACCESS_TOKEN}`,
     {
       headers: {
         'Content-Type': constants.CONTENT_TYPE.JSON,
@@ -57,7 +57,19 @@ const generateButton = (text, payload) => {
   }  
 };
 
-const getTimeZoneByUserId = (userId) => {
+const getLocationByUserId = (userId) => {
+ 	return fetch(
+    `https://graph.facebook.com/v2.11/${userId}?fields=location{city,state,region_id}&access_token=${FACEBOOK_ACCESS_TOKEN}`,
+    {
+      headers: {
+        'Content-Type': constants.CONTENT_TYPE.JSON,
+      },
+      method: 'GET'
+    }).then(res => res.json());	
+}
+
+
+const getOffsetByUserId = (userId) => {
   return fetch(
     `https://graph.facebook.com/v2.8/${userId}?fields=timezone&access_token=${FACEBOOK_ACCESS_TOKEN}`,
     {
@@ -73,5 +85,6 @@ return module.exports = {
 	sendTextMessage: sendTextMessage,
 	sendButtons: sendButtons,
 	generateButton: generateButton,
-	getTimeZoneByUserId: getTimeZoneByUserId
+	getOffsetByUserId: getOffsetByUserId,
+	getLocationByUserId: getLocationByUserId
 };
