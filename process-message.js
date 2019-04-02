@@ -2,6 +2,7 @@
 const dialogflow = require('dialogflow');
 const constants = require('./constants');
 const facebookApi = require('./facebookApi'); 
+const reminder = require('./reminder')
 const config = {
   credentials: {
     private_key: process.env.DIALOGFLOW_PRIVATE_KEY,
@@ -13,14 +14,19 @@ var userCache = { };
 //353946818548326
 const sessionClient = new dialogflow.SessionsClient(config);
 
-const sendMessage = (response, userId) => {
+const sendMessage = async (response, userId) => {
       console.log("Recieving from Dialogflow...");      
       const result = response.queryResult;
       //console.log(JSON.stringify(result, null, 4));
       if(result.action === constants.WELCOME_ACTION){
-        var buttons = [facebookApi.generateButton(constants.CREATE_REMINDER),
-         facebookApi.generateButton(constants.SHOW_ALL_REMINDERS)];
+        let buttons = [facebookApi.generateButton(constants.CREATE_REMINDER),
+        facebookApi.generateButton(constants.SHOW_ALL_REMINDERS)];
         return facebookApi.sendButtons(userId, result.fulfillmentText, buttons);
+      } else if(response.queryResult.action === constants.GET_REMINDERS){
+        console.log("-sendMessage getReminders");
+        let reminders = await reminder.getReminders(userId);
+        let text = reminders ? JSON.stringify(reminders) : "You have no reminders";
+        return facebookApi.sendTextMessage(userId, text);
       } else {
         console.log("sendMessage...", userId, result.fulfillmentText);
         return facebookApi.sendTextMessage(userId, result.fulfillmentText);
@@ -48,28 +54,20 @@ const getUserTimeZoneName = async(userId) => {
   if(location.latitude && location.latitude){
     timezone = await facebookApi.getTimezoneByCoordinates(location.latitude, location.longitude);
   } else {
-     timezone = constants.DEFAULT_TIMEZONE;
+    timezone = constants.DEFAULT_TIMEZONE;
   }
   return timezone
 }
-const setReminder = async (response, userId) => {
-  
 
-
-
-
-
-  //console.log(time);
-  return response;
-  //console.dir(timezone);
-}
 
 const handleReminderActions = async (response, userId) => {
   console.log("handleReminderActions");
   console.log(response.queryResult.parameters);
-  //return response;
-  if(isReminderInfoReady(response)){  
-    await setReminder(response, userId);
+  if(isReminderInfoReady(response)){
+    let time = response.queryResult.parameters.fields.time.stringValue;
+    let day = response.queryResult.parameters.fields.day.stringValue;
+    let date = new Date(day.substring(0, 11) + time.substring(11));    
+    await reminder.setReminder(userId, date);
   } else {
    
   }
@@ -77,35 +75,13 @@ const handleReminderActions = async (response, userId) => {
 };
 
 
-const isConversationFinished = (response) => {  
-  
-  if(response.queryResult.diagnosticInfo &&
-    response.queryResult.diagnosticInfo.fields &&
-    response.queryResult.diagnosticInfo.fields.end_conversation.boolValue) {
-    /*
-    console.log("response.queryResult.diagnosticInfo" ,response.queryResult.diagnosticInfo);
-    console.log("response.queryResult.diagnosticInfo.fields", response.queryResult.diagnosticInfo.fields);
-    console.log("response.queryResult.diagnosticInfo.fields.end_converstion.boolValue", response.queryResult.diagnosticInfo.fields.end_conversation.boolValue);
-    console.log("isConversationFinished", true);
-    */
-    return true;
-  } else {
-    /*console.log("response.queryResult.diagnosticInfo" ,response.queryResult.diagnosticInfo);
-    console.log("response.queryResult.diagnosticInfo.fields", response.queryResult.diagnosticInfo.fields);
-    console.log("response.queryResult.diagnosticInfo.fields.end_converstion.boolValue", response.queryResult.diagnosticInfo.fields.end_conversation.boolValue);
-    console.log("isConversationFinished", false);*/
-    return false;
-  }
-} 
 
 const isReminderInfoReady = (response) => {
   console.log("isReminderInfoReady response.queryResult.action" , response.queryResult.action);
   console.log("isReminderInfoReady response.queryResult.action " , response.queryResult.action);
-  console.log("isReminderInfoReady isConversationFinished" , isConversationFinished(response));
   //console.dir(response);
   if(response.queryResult.action === constants.SET_REMINDER_ACTION 
-    && response.queryResult.allRequiredParamsPresent 
-    && isConversationFinished(response)){
+    && response.queryResult.allRequiredParamsPresent){
     console.log("isReminderInfoReady" , true);
     return true;
   } else {

@@ -4,6 +4,7 @@ module.exports = Object.freeze({
     LANGUAGE_CODE: 'en-US',
     WELCOME_ACTION: 'input.welcome',
     SET_REMINDER_ACTION: 'setReminder',
+    GET_REMINDERS: 'getReminders',
     GREETING_PAYLOAD: 'Greeting',
     CREATE_REMINDER: 'Set a reminder',
     SHOW_ALL_REMINDERS: 'Show all reminders',

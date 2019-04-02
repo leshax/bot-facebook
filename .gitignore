@@ -73,3 +73,6 @@ typings/
 .fusebox/
 #dotenv environment variables file
 variables.env
+
+#firestore_keys
+firestore.json

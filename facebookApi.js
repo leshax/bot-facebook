@@ -82,9 +82,9 @@ const getOffsetByUserId = (userId) => {
 };
 
 const getTimezoneByCoordinates = (latitude, longitude) =>{
-	const { REQUIRED_TIMESTAMP } = '1331161200';
+ // Google Time Api requires some timestamp to provide timezone name by coordinates.
 	return fetch(
-    `https://maps.googleapis.com/maps/api/timezone/json?location=${latitude},${longitude}&timestamp=${REQUIRED_TIMESTAMP}&key=${GOOGLE_API}`,
+    `https://maps.googleapis.com/maps/api/timezone/json?location=${latitude},${longitude}&timestamp=1331161200&key=${GOOGLE_API}`,
     {
       headers: {
         'Content-Type': constants.CONTENT_TYPE.JSON,
