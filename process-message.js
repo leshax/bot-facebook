@@ -19,14 +19,33 @@ const sendMessage = async (response, userId) => {
       const result = response.queryResult;
       //console.log(JSON.stringify(result, null, 4));
       if(result.action === constants.WELCOME_ACTION){
+        console.log("-sendMessage welcome");
         let buttons = [facebookApi.generateButton(constants.CREATE_REMINDER),
         facebookApi.generateButton(constants.SHOW_ALL_REMINDERS)];
-        return facebookApi.sendButtons(userId, result.fulfillmentText, buttons);
+        let r = await facebookApi.sendButtons(userId, result.fulfillmentText, buttons);
       } else if(response.queryResult.action === constants.GET_REMINDERS){
         console.log("-sendMessage getReminders");
-        let reminders = await reminder.getReminders(userId);
-        let text = reminders ? JSON.stringify(reminders) : "You have no reminders";
-        return facebookApi.sendTextMessage(userId, text);
+        let unFiredReminders = await reminder.getUnfiredReminders(userId);
+        
+        
+        unFiredReminders.forEach(async (reminder) => {         
+          
+          let data = reminder.data();
+          let fired = data.fired;
+          
+          if(fired) return;          
+         
+          let reminderId = reminder.id;
+          console.log('id: ', reminderId);
+          console.log('data sendMessage: ', data);
+          let time =  new Date(data.time._seconds*1000);
+          //const sendGenericTemplate = (title, subtitle, pic_url, buttons) => {          
+          console.log('data time: ', new Date(data.time._seconds*1000));
+          console.log('userId ', userId);  
+          let buttons = [facebookApi.generateButton(constants.ACCEPT_REMINDER, ),
+          facebookApi.generateButton(constants.SNOOZE_REMINDER, reminderId)];
+          await facebookApi.sendGenericTemplate(userId, "Reminder", time +" fired: " + fired, constants.ALARM_IMG_LINK, buttons);
+        });
       } else {
         console.log("sendMessage...", userId, result.fulfillmentText);
         return facebookApi.sendTextMessage(userId, result.fulfillmentText);

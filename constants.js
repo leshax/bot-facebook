@@ -19,5 +19,8 @@ module.exports = Object.freeze({
     CONTENT_TYPE : {
     	JSON: 'application/json'
     },
-    DEFAULT_TIMEZONE: 'Europe/Kiev'
+    ACCEPT_REMINDER: 'Accept reminder',
+    SNOOZE_REMINDER: 'Snooze reminder',
+    DEFAULT_TIMEZONE: 'Europe/Kiev',
+    ALARM_IMG_LINK: 'https://kor.ill.in.ua/m/190x120/2310381.jpg'
 });

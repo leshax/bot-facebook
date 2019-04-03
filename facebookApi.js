@@ -4,7 +4,7 @@ const { FACEBOOK_ACCESS_TOKEN } = process.env;
 const { GOOGLE_API } = process.env;
 const sendButtons = (userId, text, buttons) => {
    return fetch(
-    `https://graph.facebook.com/v3.2/me/messages?access_token=${FACEBOOK_ACCESS_TOKEN}`,
+    `https://graph.facebook.com/v2.6/me/messages?access_token=${FACEBOOK_ACCESS_TOKEN}`,
     {
       headers: {
         'Content-Type': constants.CONTENT_TYPE.JSON,
@@ -29,7 +29,48 @@ const sendButtons = (userId, text, buttons) => {
   }); 
 };
 
+
+
+const sendGenericTemplate = (userId, title, subtitle, pic_url, buttons) => {
+	return fetch(
+    `https://graph.facebook.com/v2.6/me/messages?access_token=${FACEBOOK_ACCESS_TOKEN}`,
+    {
+    	headers: {
+    		'Content-Type': constants.CONTENT_TYPE.JSON,
+    	},
+    	method: 'POST',
+    	body: JSON.stringify({        	
+        	recipient: {
+          		id: userId,
+        	},
+	        message: {
+	        	"attachment": {
+		            "type":"template",
+		            "payload": {
+	  					"template_type":"generic",
+			 			"elements":[{
+			      			"title":title,
+			      			"image_url":pic_url,
+			      			"subtitle":subtitle,
+			      			"default_action": {
+			       				"type": "web_url",
+			        			"url": "http://www.google.com",
+			        			"messenger_extensions": false,
+			        			"webview_height_ratio": "full"
+			      			},
+			    			"buttons": buttons     
+			    		}]
+					}
+	      		}
+	    	}
+		})
+	}).catch(error => {
+		console.log("error", error)
+	}); 
+};
+
 const sendTextMessage = (userId, text) => {
+  console.log("sendTextMessage");
   return fetch(
     `https://graph.facebook.com/v2.6/me/messages?access_token=${FACEBOOK_ACCESS_TOKEN}`,
     {
@@ -43,17 +84,20 @@ const sendTextMessage = (userId, text) => {
           id: userId,
         },
         message: {
-          text,
-        },
+         "text": text
+        }
       }),
     }
-  );
+  ).catch(error => {
+	console.log("error", error)
+  });
 };
 
 const generateButton = (text, payload) => {
+  payload = payload ? payload : text;
   return  {
     "type": constants.POSTBACK_BUTTON_TYPE,
-    "payload": text,
+    "payload": payload,
     "title": text
   }  
 };
@@ -99,5 +143,6 @@ return module.exports = {
 	generateButton: generateButton,
 	getOffsetByUserId: getOffsetByUserId,
 	getLocationByUserId: getLocationByUserId,
-	getTimezoneByCoordinates: getTimezoneByCoordinates
+	getTimezoneByCoordinates: getTimezoneByCoordinates,
+	sendGenericTemplate: sendGenericTemplate
 };
