@@ -1,3 +1,4 @@
+
 var constants = require('./constants');
 const fetch = require('node-fetch');
 const { FACEBOOK_ACCESS_TOKEN } = process.env;
@@ -137,6 +138,22 @@ const getTimezoneByCoordinates = (latitude, longitude) =>{
     }).then(res => res.json());
 }
 
+const getUserTimeZoneName = async(userId) => {
+  let timezone;
+  let isDefaultValue = true;
+  let location = await getLocationByUserId(userId);
+  //50.4501,30.5234
+  //console.log(await facebookApi.getTimezoneByCoordinates(50.4501, 30.5234))  
+  if(location.latitude && location.latitude){
+    timezone = await getTimezoneByCoordinates(location.latitude, location.longitude);
+    isDefaultValue = false;
+  } else {
+    timezone = constants.DEFAULT_TIMEZONE;
+  }
+  return { "timezone": timezone, "isDefaultValue": isDefaultValue };
+}
+
+
 return module.exports = {
 	sendTextMessage: sendTextMessage,
 	sendButtons: sendButtons,
@@ -144,5 +161,6 @@ return module.exports = {
 	getOffsetByUserId: getOffsetByUserId,
 	getLocationByUserId: getLocationByUserId,
 	getTimezoneByCoordinates: getTimezoneByCoordinates,
-	sendGenericTemplate: sendGenericTemplate
+	sendGenericTemplate: sendGenericTemplate,
+	getUserTimeZoneName: getUserTimeZoneName
 };

@@ -21,6 +21,7 @@ module.exports = Object.freeze({
     },
     ACCEPT_REMINDER: 'Accept reminder',
     SNOOZE_REMINDER: 'Snooze reminder',
-    DEFAULT_TIMEZONE: 'Europe/Kiev',
-    ALARM_IMG_LINK: 'https://kor.ill.in.ua/m/190x120/2310381.jpg'
+    DEFAULT_TIMEZONE: 'Europe/Warsaw',
+    ALARM_IMG_LINK: 'https://kor.ill.in.ua/m/190x120/2310381.jpg',
+    EMPTY_LIST: 'The reminder list is empty'
 });

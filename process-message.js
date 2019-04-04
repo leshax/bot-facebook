@@ -14,6 +14,7 @@ var userCache = { };
 //353946818548326
 const sessionClient = new dialogflow.SessionsClient(config);
 
+
 const sendMessage = async (response, userId) => {
       console.log("Recieving from Dialogflow...");      
       const result = response.queryResult;
@@ -25,27 +26,7 @@ const sendMessage = async (response, userId) => {
         let r = await facebookApi.sendButtons(userId, result.fulfillmentText, buttons);
       } else if(response.queryResult.action === constants.GET_REMINDERS){
         console.log("-sendMessage getReminders");
-        let unFiredReminders = await reminder.getUnfiredReminders(userId);
-        
-        
-        unFiredReminders.forEach(async (reminder) => {         
-          
-          let data = reminder.data();
-          let fired = data.fired;
-          
-          if(fired) return;          
-         
-          let reminderId = reminder.id;
-          console.log('id: ', reminderId);
-          console.log('data sendMessage: ', data);
-          let time =  new Date(data.time._seconds*1000);
-          //const sendGenericTemplate = (title, subtitle, pic_url, buttons) => {          
-          console.log('data time: ', new Date(data.time._seconds*1000));
-          console.log('userId ', userId);  
-          let buttons = [facebookApi.generateButton(constants.ACCEPT_REMINDER, ),
-          facebookApi.generateButton(constants.SNOOZE_REMINDER, reminderId)];
-          await facebookApi.sendGenericTemplate(userId, "Reminder", time +" fired: " + fired, constants.ALARM_IMG_LINK, buttons);
-        });
+        reminder.sendReminders(userId);
       } else {
         console.log("sendMessage...", userId, result.fulfillmentText);
         return facebookApi.sendTextMessage(userId, result.fulfillmentText);
@@ -65,18 +46,6 @@ const getHookInputForDialogFlow = (event) => {
     }
 };
 
-const getUserTimeZoneName = async(userId) => {
-  var timezone;
-  let location = await facebookApi.getLocationByUserId(userId);
-  //50.4501,30.5234
-  console.log(await facebookApi.getTimezoneByCoordinates(50.4501, 30.5234))  
-  if(location.latitude && location.latitude){
-    timezone = await facebookApi.getTimezoneByCoordinates(location.latitude, location.longitude);
-  } else {
-    timezone = constants.DEFAULT_TIMEZONE;
-  }
-  return timezone
-}
 
 
 const handleReminderActions = async (response, userId) => {
@@ -124,7 +93,7 @@ module.exports.processHook = async (event) => {
 
   if(message === null) return;
 
-  let timezone = await getUserTimeZoneName(userId);
+  let timezoneObj = await facebookApi.getUserTimeZoneName(userId);
 
   const request = {
     session: sessionPath,
@@ -135,7 +104,7 @@ module.exports.processHook = async (event) => {
       }      
     },
     queryParams: {
-        timeZone: timezone
+        timeZone: timezoneObj.timezone
     }
   };
   try {

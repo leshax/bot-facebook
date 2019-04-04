@@ -1,5 +1,7 @@
 var admin = require("firebase-admin");
 var serviceAccount = require("./firestore.json");
+var facebookApi = require("./facebookApi");
+var constants = require("./constants");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: process.env.DB_URL,
@@ -9,7 +11,7 @@ var collection = db.collection('reminders');
 
 const setReminder = async (userId, time) => {
 	let id = userId + "-" + time.getTime();	
-	await docRef.doc(id).set({
+	await collection.doc(id).set({
 	  userId: userId,
 	  time: time,
 	  fired: false
@@ -37,7 +39,40 @@ const getUnfiredReminders = async (userId) => {
   return result;
 };
 
+const sendReminders = async (userId) => {
+  let reminders = await getUnfiredReminders(userId);
+  if(!reminders){
+  	await facebookApi.sendTextMessage(userId, constants.EMPTY_LIST);
+  	return constants.EMPTY_LIST;
+  }     
+  reminders.forEach(async (reminder) => {             
+    let data = reminder.data();
+    let fired = data.fired;
+    if(fired) return;             
+    let reminderId = reminder.id;
+    console.log('id: ', reminderId);
+    console.log('data sendMessage: ', data);
+    let time =  new Date(data.time._seconds*1000);
+    //const sendGenericTemplate = (title, subtitle, pic_url, buttons) => {          
+    console.log('data time: ', new Date(data.time._seconds*1000));
+    console.log('userId ', userId);    
+    let timezoneName = await facebookApi.getUserTimeZoneName(userId);
+    //let options = {"timeZone": timezoneName, "hour12": false, "year": "numeric", "month":"2-digit","day":"2-digit"};
+    let optionsShort = {"timeZone": timezoneName.timezone, "hour12": false, "hour":"2-digit", "minute":"2-digit" };
+    let optionsFull = {"timeZone": timezoneName.timezone, "hour12": false };
+    let localMinutes = time.toLocaleString("en-US", optionsShort);
+    let localTimeStr = time.toLocaleString("en-US", optionsFull);
+    console.log("localTimeStr", localTimeStr);
+    console.log("localTimeMinutes", localTimeStr);
+    let buttons = [facebookApi.generateButton(constants.ACCEPT_REMINDER),
+    facebookApi.generateButton(constants.SNOOZE_REMINDER)];
+    let debugInfo = "[DEBUG] UserLocalTime: " + localTimeStr + ", " + fired + ", " + timezoneName.timezone; 
+    await facebookApi.sendGenericTemplate(userId, "Reminder at " + localMinutes, debugInfo, constants.ALARM_IMG_LINK, buttons);
+  });
+};
+
 return module.exports = {
 	setReminder: setReminder,
-	getUnfiredReminders: getUnfiredReminders
+	getUnfiredReminders: getUnfiredReminders,
+	sendReminders: sendReminders
 };

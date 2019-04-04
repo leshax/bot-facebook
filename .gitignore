@@ -76,3 +76,4 @@ variables.env
 
 #firestore_keys
 firestore.json
+run.bat
