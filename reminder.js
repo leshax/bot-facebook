@@ -10,7 +10,7 @@ var db = admin.firestore();
 var collection = db.collection('reminders');
 
 const setReminder = async (userId, time) => {
-	let id = userId + "-" + time.getTime();	
+	let id = userId + time.getTime();
 	await collection.doc(id).set({
 	  userId: userId,
 	  time: time,
@@ -20,7 +20,7 @@ const setReminder = async (userId, time) => {
 
 const getUnfiredReminders = async (userId) => {
   console.log('--get Reminders start:')
-  let result = await collection.where('time', '<', new Date()).get();
+  let result = await collection.where('userId', '==', userId).get();
   if(result.empty) return null;
   //where('fired', '==', false)
   result.forEach(function (documentSnapshot) {
@@ -65,8 +65,8 @@ const sendReminders = async (userId) => {
     let localTimeStr = time.toLocaleString("en-US", optionsFull);
     console.log("localTimeStr", localTimeStr);
     console.log("localTimeMinutes", localTimeStr);
-    let acceptPayload = JSON.stringify({ "ACCEPT_REMINDER": { "userId": userId, "time": time } });
-    let snoozePaypload = JSON.stringify({ "SNOOZE_REMINDER": { "userId": userId, "time": time } });
+    let acceptPayload = JSON.stringify({ "ACCEPT_REMINDER": { "userId": userId, "time": time, "reminderId" : reminderId } });
+    let snoozePaypload = JSON.stringify({ "SNOOZE_REMINDER": { "userId": userId, "time": time, "reminderId" : reminderId} });
     let buttons = [facebookApi.generateButton(constants.ACCEPT_REMINDER, acceptPayload),
     facebookApi.generateButton(constants.SNOOZE_REMINDER, snoozePaypload)];
     let debugInfo = "[DEBUG] UserLocalTime: " + localTimeStr + ", " + fired + ", " + timezoneName.timezone; 

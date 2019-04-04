@@ -30,7 +30,7 @@ const sendMessage = async (response, userId) => {
         console.log("-sendMessage getReminders");
         reminder.sendReminders(userId);
       } else {
-        console.log("sendMessage...", userId, result.fulfillmentText);
+        console.log("sendMessage else", result.fulfillmentText);
         return facebookApi.sendTextMessage(userId, result.fulfillmentText);
       }     
       //console.log(JSON.stringify(response));
@@ -40,29 +40,39 @@ const getHookInputForDialogFlow = (event) => {
     if (event.message && event.message.text) {
       return event.message.text;
     } else if(event.postback && utils.isJSON(event.postback.payload)){
-      return null;
+      let snoozeDoc = JSON.parse(event.postback.payload).SNOOZE_REMINDER;
+      console.log("posback JSON: ", JSON.parse(event.postback.payload));
+      console.log("posback JSON. snoozeDoc: ", snoozeDoc);
+      if(snoozeDoc){
+        let r = constants.SNOOZE_REMINDER + " " + snoozeDoc.reminderId;
+        console.log("snooze doc: " + r);
+        return r
+      }
     } else if(event.postback && event.postback.payload) {
-      console.log("hook payload: " + event.postback.payload);
+      console.log("postback text payload: " + event.postback.payload);
       return event.postback.payload;
     } else {
       //console.log(JSON.stringify(event.postback));
       console.error("Unkown messenger hook");
       return null;
     }
+    return null;
 };
 
 
 
-const handleReminderActions = async (response, userId) => {
-  console.log("handleReminderActions");
-  console.log(response.queryResult.parameters);
+const handleActions = async (response, userId) => {
+  console.log("handleActions");
+  console.log("parameters: ", response.queryResult.parameters);
+  console.log("action: " + response.queryResult.action);
   if( response.queryResult.action === constants.SET_REMINDER_ACTION && response.queryResult.allRequiredParamsPresent){
     let time = response.queryResult.parameters.fields.time.stringValue;
     let day = response.queryResult.parameters.fields.day.stringValue;
-    let date = new Date(day.substring(0, 11) + time.substring(11));    
+    let date = new Date(day.substring(0, 11) + time.substring(11)); 
+    console.log("date string SET REMINDER: " + day.substring(0, 11) + time.substring(11));   
     await reminder.setReminder(userId, date);
-  } else {
-   
+  } else if(response.queryResult.action === constants.SNOOZE_ACTION && response.queryResult.parameters.fields.reminderId.stringValue) {
+    console.log("HANDLE SNOOZE: ",  response.queryResult.parameters.fields.reminderId.stringValue);
   }
    //return response;
 };
@@ -102,7 +112,7 @@ module.exports.processHook = async (event) => {
   };
   try {
     let responses = await sessionClient.detectIntent(request);
-    await handleReminderActions(responses[0], userId);
+    await handleActions(responses[0], userId);
     await sendMessage(responses[0], userId);
   } catch (e) {
     console.error(constants.PROCESS_HOOK_ERROR)
