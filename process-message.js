@@ -2,7 +2,9 @@
 const dialogflow = require('dialogflow');
 const constants = require('./constants');
 const facebookApi = require('./facebookApi'); 
-const reminder = require('./reminder')
+const reminder = require('./reminder');
+const utils = require('./utils');
+
 const config = {
   credentials: {
     private_key: process.env.DIALOGFLOW_PRIVATE_KEY,
@@ -37,7 +39,10 @@ const sendMessage = async (response, userId) => {
 const getHookInputForDialogFlow = (event) => {
     if (event.message && event.message.text) {
       return event.message.text;
+    } else if(event.postback && utils.isJSON(event.postback.payload)){
+      return null;
     } else if(event.postback && event.postback.payload) {
+      console.log("hook payload: " + event.postback.payload);
       return event.postback.payload;
     } else {
       //console.log(JSON.stringify(event.postback));
@@ -51,7 +56,7 @@ const getHookInputForDialogFlow = (event) => {
 const handleReminderActions = async (response, userId) => {
   console.log("handleReminderActions");
   console.log(response.queryResult.parameters);
-  if(isReminderInfoReady(response)){
+  if( response.queryResult.action === constants.SET_REMINDER_ACTION && response.queryResult.allRequiredParamsPresent){
     let time = response.queryResult.parameters.fields.time.stringValue;
     let day = response.queryResult.parameters.fields.day.stringValue;
     let date = new Date(day.substring(0, 11) + time.substring(11));    
@@ -64,19 +69,7 @@ const handleReminderActions = async (response, userId) => {
 
 
 
-const isReminderInfoReady = (response) => {
-  console.log("isReminderInfoReady response.queryResult.action" , response.queryResult.action);
-  console.log("isReminderInfoReady response.queryResult.action " , response.queryResult.action);
-  //console.dir(response);
-  if(response.queryResult.action === constants.SET_REMINDER_ACTION 
-    && response.queryResult.allRequiredParamsPresent){
-    console.log("isReminderInfoReady" , true);
-    return true;
-  } else {
-    console.log("isReminderInfoReady" , false);
-    return false;
-  }
-}
+
 /*
 const getUserTimeZone = async (userId) => {
   if(userCache[userId]){
@@ -92,7 +85,7 @@ module.exports.processHook = async (event) => {
   const sessionPath = sessionClient.sessionPath(constants.PROJECT_ID, userId);
 
   if(message === null) return;
-
+  console.log("message: " + message);
   let timezoneObj = await facebookApi.getUserTimeZoneName(userId);
 
   const request = {

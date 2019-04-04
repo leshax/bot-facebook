@@ -52,7 +52,8 @@ const sendReminders = async (userId) => {
     let reminderId = reminder.id;
     console.log('id: ', reminderId);
     console.log('data sendMessage: ', data);
-    let time =  new Date(data.time._seconds*1000);
+    let miliSeconds = data.time._seconds*1000;
+    let time =  new Date(miliSeconds);
     //const sendGenericTemplate = (title, subtitle, pic_url, buttons) => {          
     console.log('data time: ', new Date(data.time._seconds*1000));
     console.log('userId ', userId);    
@@ -64,8 +65,10 @@ const sendReminders = async (userId) => {
     let localTimeStr = time.toLocaleString("en-US", optionsFull);
     console.log("localTimeStr", localTimeStr);
     console.log("localTimeMinutes", localTimeStr);
-    let buttons = [facebookApi.generateButton(constants.ACCEPT_REMINDER),
-    facebookApi.generateButton(constants.SNOOZE_REMINDER)];
+    let acceptPayload = JSON.stringify({ "ACCEPT_REMINDER": { "userId": userId, "time": time } });
+    let snoozePaypload = JSON.stringify({ "SNOOZE_REMINDER": { "userId": userId, "time": time } });
+    let buttons = [facebookApi.generateButton(constants.ACCEPT_REMINDER, acceptPayload),
+    facebookApi.generateButton(constants.SNOOZE_REMINDER, snoozePaypload)];
     let debugInfo = "[DEBUG] UserLocalTime: " + localTimeStr + ", " + fired + ", " + timezoneName.timezone; 
     await facebookApi.sendGenericTemplate(userId, "Reminder at " + localMinutes, debugInfo, constants.ALARM_IMG_LINK, buttons);
   });

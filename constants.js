@@ -19,8 +19,8 @@ module.exports = Object.freeze({
     CONTENT_TYPE : {
     	JSON: 'application/json'
     },
-    ACCEPT_REMINDER: 'Accept reminder',
-    SNOOZE_REMINDER: 'Snooze reminder',
+    ACCEPT_REMINDER: 'Accept',
+    SNOOZE_REMINDER: 'Snooze',
     DEFAULT_TIMEZONE: 'Europe/Warsaw',
     ALARM_IMG_LINK: 'https://kor.ill.in.ua/m/190x120/2310381.jpg',
     EMPTY_LIST: 'The reminder list is empty'
