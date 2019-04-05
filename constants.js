@@ -20,10 +20,11 @@ module.exports = Object.freeze({
     	JSON: 'application/json'
     },
     ACCEPT_REMINDER: 'Accept',
+    ACCEPT_ACTION: 'accept',
     SNOOZE_REMINDER: 'Snooze',
     SNOOZE_ACTION: 'snooze',
     SNOOZE_CONTEXT: 'snooze',
     DEFAULT_TIMEZONE: 'Europe/Warsaw',
-    ALARM_IMG_LINK: 'https://kor.ill.in.ua/m/190x120/2310381.jpg',
+    ALARM_IMG_LINK: 'https://lh3.googleusercontent.com/uD65OOIxM1-khzDI5OowwdzjD9j8CgelcH9mBGAZWIAsAyoTtEE7smUH9GAf3mCg8AA=s180-rw',
     EMPTY_LIST: 'The reminder list is empty'
 });

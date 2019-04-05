@@ -11,7 +11,7 @@ const config = {
     client_email: process.env.DIALOGFLOW_CLIENT_EMAIL
   }
 };
-var userCache = { };
+var cache = { };
 //2107839096000983
 //353946818548326
 const sessionClient = new dialogflow.SessionsClient(config);
@@ -41,12 +41,18 @@ const getHookInputForDialogFlow = (event) => {
       return event.message.text;
     } else if(event.postback && utils.isJSON(event.postback.payload)){
       let snoozeDoc = JSON.parse(event.postback.payload).SNOOZE_REMINDER;
+      let acceptDoc = JSON.parse(event.postback.payload).ACCEPT_REMINDER;
       console.log("posback JSON: ", JSON.parse(event.postback.payload));
       console.log("posback JSON. snoozeDoc: ", snoozeDoc);
+      console.log("posback JSON. acceptDoc: ", acceptDoc);
       if(snoozeDoc){
-        let r = constants.SNOOZE_REMINDER + " " + snoozeDoc.reminderId;
-        console.log("snooze doc: " + r);
-        return r
+         let r = constants.SNOOZE_REMINDER + " " + snoozeDoc.reminderId;
+         console.log("snooze doc: ", r);
+         return r
+      } else if(acceptDoc){
+         let r = constants.ACCEPT_REMINDER + " " + acceptDoc.reminderId;
+         console.log("accept doc: ", r);
+         return r;
       }
     } else if(event.postback && event.postback.payload) {
       console.log("postback text payload: " + event.postback.payload);
@@ -73,22 +79,23 @@ const handleActions = async (response, userId) => {
     await reminder.setReminder(userId, date);
   } else if(response.queryResult.action === constants.SNOOZE_ACTION && response.queryResult.parameters.fields.reminderId.stringValue) {
     console.log("HANDLE SNOOZE: ",  response.queryResult.parameters.fields.reminderId.stringValue);
+    let reminderId = response.queryResult.parameters.fields.reminderId.stringValue;
+    await reminder.snoozeReminder(reminderId);
+  } else if(response.queryResult.action === constants.ACCEPT_ACTION && response.queryResult.parameters.fields.reminderId.stringValue) {
+    console.log("HANDLE ACCEPT: ",  response.queryResult.parameters.fields.reminderId.stringValue);
+    let reminderId = response.queryResult.parameters.fields.reminderId.stringValue;
+    await reminder.removeReminder(reminderId);
   }
    //return response;
 };
 
-
-
-
-/*
-const getUserTimeZone = async (userId) => {
-  if(userCache[userId]){
-    return userCache[userId];
-  } else {
-    return await facebookApi.getTimeZoneByUserId(userId);
-  }
+const initUserTimeZone = async (userId) => {
+  if(!cache.userId){    
+    cache[userId] = await facebookApi.getUserTimeZoneName(userId);     
+  } 
+  console.log(cache); 
 }
-*/
+
 module.exports.processHook = async (event) => {
   const userId = event.sender.id;
   const message = getHookInputForDialogFlow(event);
@@ -96,7 +103,8 @@ module.exports.processHook = async (event) => {
 
   if(message === null) return;
   console.log("message: " + message);
-  let timezoneObj = await facebookApi.getUserTimeZoneName(userId);
+  
+  await initUserTimeZone(userId);
 
   const request = {
     session: sessionPath,
@@ -107,7 +115,7 @@ module.exports.processHook = async (event) => {
       }      
     },
     queryParams: {
-        timeZone: timezoneObj.timezone
+        timeZone: cache[userId].timezone
     }
   };
   try {

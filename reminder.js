@@ -18,29 +18,47 @@ const setReminder = async (userId, time) => {
 	});
 };
 
-const getUnfiredReminders = async (userId) => {
+const removeReminder = async (reminderId) => {
+ 	await db.collection("reminders").doc(reminderId).delete().catch(error => {
+		console.error("removeReminder", error)
+	});
+};
+
+const snoozeReminder = async (reminderId) => {
+	let reminder = await db.collection("reminders").doc(reminderId).get();
+	let oldDate = new Date(reminder.data().time._seconds * 1000);
+	let newDate = new Date(oldDate.setTime(oldDate.getTime() + 1000 * 60));
+    await db.collection("reminders").doc(reminderId).update({
+    	time: newDate
+	});
+};
+
+const getReminders = async (userId) => {
   console.log('--get Reminders start:')
   let result = await collection.where('userId', '==', userId).get();
   if(result.empty) return null;
   //where('fired', '==', false)
   result.forEach(function (documentSnapshot) {
-  var data = documentSnapshot.data();
-  	console.log("getUnfiredReminders:", data);
+	  var data = documentSnapshot.data();
+	  console.log("getUnfiredReminders:", data);
   });
- /*
-  console.log('--get Reminders finish: ');
-  result.forEach(function (documentSnapshot) {
-  	let data = documentSnapshot.data();
-  	console.log("data", data);
-  });
+  return result;
+};
 
-  console.log('--get Reminders finish 3: ');
-  */
+const getRemindersToday = async (userId) => {
+  console.log('--get Reminders start:')
+  let result = await collection.where('userId', '==', userId).get();
+  if(result.empty) return null;
+  //where('fired', '==', false)
+  result.forEach(function (documentSnapshot) {
+	  var data = documentSnapshot.data();
+	  console.log("getUnfiredReminders:", data);
+  });
   return result;
 };
 
 const sendReminders = async (userId) => {
-  let reminders = await getUnfiredReminders(userId);
+  let reminders = await getReminders(userId);
   if(!reminders){
   	await facebookApi.sendTextMessage(userId, constants.EMPTY_LIST);
   	return constants.EMPTY_LIST;
@@ -76,6 +94,8 @@ const sendReminders = async (userId) => {
 
 return module.exports = {
 	setReminder: setReminder,
-	getUnfiredReminders: getUnfiredReminders,
-	sendReminders: sendReminders
+	getReminders: getReminders,
+	sendReminders: sendReminders,
+	removeReminder: removeReminder,
+	snoozeReminder: snoozeReminder
 };

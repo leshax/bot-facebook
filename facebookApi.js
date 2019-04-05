@@ -66,7 +66,7 @@ const sendGenericTemplate = (userId, title, subtitle, pic_url, buttons) => {
 	    	}
 		})
 	}).catch(error => {
-		console.log("error", error)
+		console.error("sendGenericTemplate", error)
 	}); 
 };
 
@@ -90,7 +90,7 @@ const sendTextMessage = (userId, text) => {
       }),
     }
   ).catch(error => {
-	console.log("error", error)
+	console.error("sendTextMessage: ", error)
   });
 };
 
@@ -139,18 +139,23 @@ const getTimezoneByCoordinates = (latitude, longitude) =>{
 }
 
 const getUserTimeZoneName = async(userId) => {
-  let timezone;
-  let isDefaultValue = true;
-  let location = await getLocationByUserId(userId);
-  //50.4501,30.5234
-  //console.log(await facebookApi.getTimezoneByCoordinates(50.4501, 30.5234))  
-  if(location.latitude && location.latitude){
-    timezone = await getTimezoneByCoordinates(location.latitude, location.longitude);
-    isDefaultValue = false;
-  } else {
-    timezone = constants.DEFAULT_TIMEZONE;
-  }
-  return { "timezone": timezone, "isDefaultValue": isDefaultValue };
+  var timezone;
+  var isDefaultValue = true;
+  try{
+	  let location = await getLocationByUserId(userId);
+	  //50.4501,30.5234
+	  //console.log(await facebookApi.getTimezoneByCoordinates(50.4501, 30.5234))  
+	  if(location.latitude && location.latitude){
+	    timezone = await getTimezoneByCoordinates(location.latitude, location.longitude);
+	    isDefaultValue = false;
+	  } else {
+	    timezone = constants.DEFAULT_TIMEZONE;
+	  }
+	  return { "timezone": timezone, "isDefaultValue": isDefaultValue };
+	} catch (e){
+	  console.error("getUserTime error: ", e);
+	  return { "timezone": constants.DEFAULT_TIMEZONE, "isDefaultValue": isDefaultValue };
+	}
 }
 
 
