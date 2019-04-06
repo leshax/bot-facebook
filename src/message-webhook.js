@@ -1,6 +1,11 @@
 const handleMessage = require('./process-message');
 const reminder = require('./reminder');
 
+/**
+ * Catches facebook message event
+ * @param {object} req - Express req object
+ * @param {object} res - Express res object
+ */
 const webhook = async (req, res) => {
   console.log("HOOK!");
   if (req.body.object === 'page') {
@@ -17,6 +22,11 @@ const webhook = async (req, res) => {
   }
 };
 
+/**
+ * Cron job trigger. Entry point to detect ready reminders.
+ * @param {object} req - Express req object
+ * @param {object} res - Express res object
+ */
 const tick = async (req, res) => {
   try {
     await reminder.sendToFireReminders();

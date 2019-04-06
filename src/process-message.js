@@ -10,12 +10,15 @@ const config = {
     client_email: process.env.DIALOGFLOW_CLIENT_EMAIL
   }
 };
-var cache = {};
-//2107839096000983
-//353946818548326
+var cache = {}; /* Immitation of memcache */
+
 const sessionClient = new dialogflow.SessionsClient(config);
 
-
+/**
+ * Permorms all activities related to facebook response after dialogflow analysis
+ * @param {object} response - Dialogflow response object
+ * @param {string} userId - facebook user id
+ */
 const sendMessage = async (response, userId) => {
   console.log("Recieving from Dialogflow...");
   const result = response.queryResult;
@@ -31,11 +34,16 @@ const sendMessage = async (response, userId) => {
     reminder.sendAllReminders(userId);
   } else {
     console.log("sendMessage else", result.fulfillmentText);
-    return facebookApi.sendTextMessage(userId, result.fulfillmentText);
+    facebookApi.sendTextMessage(userId, result.fulfillmentText);
   }
   //console.log(JSON.stringify(response));
 };
 
+/**
+ * Creates a message for dialog flow analysis after facebook event hook
+ * @param {object} event - Facebook hook object
+ * @return {string} text - Text for dialog flow for analysis
+ */
 const getHookInputForDialogFlow = (event) => {
   if (event.message && event.message.text) {
     return event.message.text;
@@ -66,7 +74,11 @@ const getHookInputForDialogFlow = (event) => {
 };
 
 
-
+/**
+ * Permorms all activities related to internal changes like database updates.
+ * @param {object} response - Dialogflow response object
+ * @param {string} userId - Facebook user id
+ */
 const handleActions = async (response, userId) => {
   console.log("handleActions");
   console.log("parameters: ", response.queryResult.parameters);
@@ -89,6 +101,10 @@ const handleActions = async (response, userId) => {
   //return response;
 };
 
+/**
+ * Cache user timezone name.
+ * @param {string} userId - Facebook user id
+ */
 const initUserTimeZone = async (userId) => {
   if (!cache.userId) {
     cache[userId] = await facebookApi.getUserTimeZoneName(userId);
@@ -96,6 +112,10 @@ const initUserTimeZone = async (userId) => {
   console.log(cache);
 }
 
+/**
+ * Transfers message to dialogflow
+ * @param {object} event - facebook message event 
+ */
 module.exports.processHook = async (event) => {
   const userId = event.sender.id;
   const message = getHookInputForDialogFlow(event);

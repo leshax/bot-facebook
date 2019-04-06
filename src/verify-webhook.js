@@ -1,4 +1,10 @@
 const constants = require('./constants');
+
+/**
+ * Handles facebook verify request
+ * @param {object} req - Express req object
+ * @param {object} res - Express res object
+ */
 const verifyWebhook = async (req, res) => {
   console.log("webhook");
   let mode = req.query[constants.HUB_MODE];
