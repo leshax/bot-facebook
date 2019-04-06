@@ -10,7 +10,7 @@ const config = {
     client_email: process.env.DIALOGFLOW_CLIENT_EMAIL
   }
 };
-var cache = {}; /* Immitation of memcache */
+var cache = {}; 
 
 const sessionClient = new dialogflow.SessionsClient(config);
 
@@ -40,7 +40,7 @@ const sendMessage = async (response, userId) => {
 };
 
 /**
- * Creates a message for dialog flow analysis after facebook event hook
+ * Returns a message for dialog flow analysis after facebook event hook
  * @param {object} event - Facebook hook object
  * @return {string} text - Text for dialog flow for analysis
  */
@@ -54,13 +54,9 @@ const getHookInputForDialogFlow = (event) => {
     console.log("posback JSON. snoozeDoc: ", snoozeDoc);
     console.log("posback JSON. acceptDoc: ", acceptDoc);
     if (snoozeDoc) {
-      let r = constants.SNOOZE_REMINDER + " " + snoozeDoc.reminderId;
-      console.log("snooze doc: ", r);
-      return r
-    } else if (acceptDoc) {
-      let r = constants.ACCEPT_REMINDER + " " + acceptDoc.reminderId;
-      console.log("accept doc: ", r);
-      return r;
+      return constants.SNOOZE_REMINDER + " " + snoozeDoc.reminderId;
+    } else if (acceptDoc) {      
+      return constants.ACCEPT_REMINDER + " " + acceptDoc.reminderId;
     }
   } else if (event.postback && event.postback.payload) {
     console.log("postback text payload: " + event.postback.payload);

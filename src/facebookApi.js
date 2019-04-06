@@ -1,6 +1,6 @@
 var constants = require('./constants');
 const fetch = require('node-fetch');
-const { FACEBOOK_ACCESS_TOKE } = process.env;
+const { FACEBOOK_ACCESS_TOKEN } = process.env;
 const { GOOGLE_API } = process.env;
 
 /**
@@ -203,7 +203,7 @@ return module.exports = {
   sendTextMessage: sendTextMessage,
   sendButtons: sendButtons,
   generateButton: generateButton,
-  getOffsetByUserId: getOffsetByUserId,
+  //getOffsetByUserId: getOffsetByUserId,
   getLocationByUserId: getLocationByUserId,
   getTimezoneByCoordinates: getTimezoneByCoordinates,
   sendGenericTemplate: sendGenericTemplate,
