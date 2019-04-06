@@ -113,8 +113,8 @@ const initUserTimeZone = async (userId) => {
  * @param {object} event - facebook message event 
  */
 module.exports.processHook = async (event) => {
-  const userId = event.recipient.id;
-  console.dir(event);
+  const userId = event.sender.id;
+  console.log("processHook", userId);
   const message = getHookInputForDialogFlow(event);
   const sessionPath = sessionClient.sessionPath(constants.PROJECT_ID, userId);
 
