@@ -10,8 +10,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => res.send('Hello World!'));
+app.get('/tick', messageWebhook.tick)
 app.get('/webhook', verifyWebhook);
-app.post('/webhook', messageWebhook);
+app.post('/webhook', messageWebhook.webhook);
 
 app.listen(8080, () => console.log('Express server is listening on port 8080'));
 

@@ -1,6 +1,7 @@
 const handleMessage = require('./process-message');
+const reminder = require('./reminder');
 
-module.exports = async (req, res) => {
+const webhook = async (req, res) => {
   console.log("HOOK!");
   if (req.body.object === 'page') {
     //console.log("-", req.body.object);
@@ -15,3 +16,18 @@ module.exports = async (req, res) => {
     res.status(200).end();
   }
 };
+
+const tick = async (req, res) => {
+  try{
+    await reminder.sendToFireReminders();
+    res.status(200).end();
+  } catch (e) {
+    console.error('tick', error);
+    res.status(400).end();
+  }
+}
+
+module.exports = {
+  tick: tick,
+  webhook: webhook
+}

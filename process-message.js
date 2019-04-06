@@ -27,8 +27,8 @@ const sendMessage = async (response, userId) => {
         facebookApi.generateButton(constants.SHOW_ALL_REMINDERS)];
         let r = await facebookApi.sendButtons(userId, result.fulfillmentText, buttons);
       } else if(response.queryResult.action === constants.GET_REMINDERS){
-        console.log("-sendMessage getReminders");
-        reminder.sendReminders(userId);
+        console.log("-sendMessage getAllReminders");
+        reminder.sendAllReminders(userId);
       } else {
         console.log("sendMessage else", result.fulfillmentText);
         return facebookApi.sendTextMessage(userId, result.fulfillmentText);
