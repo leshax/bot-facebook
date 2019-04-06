@@ -1,4 +1,6 @@
-require('dotenv').config({ path: 'variables.env' });
+require('dotenv').config({
+  path: 'variables.env'
+});
 
 const messageWebhook = require('./src/message-webhook');
 const express = require('express');
@@ -7,7 +9,9 @@ const verifyWebhook = require('./src/verify-webhook');
 const app = express();
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 
 app.get('/', (req, res) => res.send('Hello World!'));
 app.get('/tick', messageWebhook.tick)
@@ -15,4 +19,3 @@ app.get('/webhook', verifyWebhook);
 app.post('/webhook', messageWebhook.webhook);
 
 app.listen(8080, () => console.log('Express server is listening on port 8080'));
-

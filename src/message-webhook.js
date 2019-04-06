@@ -5,12 +5,12 @@ const webhook = async (req, res) => {
   console.log("HOOK!");
   if (req.body.object === 'page') {
     //console.log("-", req.body.object);
-     //console.dir(entry, {depth: null});
+    //console.dir(entry, {depth: null});
     req.body.entry.forEach(entry => {
       //console.log("--", JSON.stringify(entry));
 
-      entry.messaging.forEach(event => {          
-          handleMessage.processHook(event);
+      entry.messaging.forEach(event => {
+        handleMessage.processHook(event);
       });
     });
     res.status(200).end();
@@ -18,7 +18,7 @@ const webhook = async (req, res) => {
 };
 
 const tick = async (req, res) => {
-  try{
+  try {
     await reminder.sendToFireReminders();
     res.status(200).end();
   } catch (e) {
