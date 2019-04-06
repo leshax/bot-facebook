@@ -1,9 +1,9 @@
 require('dotenv').config({ path: 'variables.env' });
 
-const messageWebhook = require('./message-webhook');
+const messageWebhook = require('./src/message-webhook');
 const express = require('express');
 const bodyParser = require('body-parser');
-const verifyWebhook = require('./verify-webhook');
+const verifyWebhook = require('./src/verify-webhook');
 const app = express();
 
 app.use(bodyParser.json());

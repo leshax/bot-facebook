@@ -30,7 +30,9 @@ const snoozeReminder = async (reminderId) => {
 	let newDate = new Date(oldDate.setTime(oldDate.getTime() + 1000 * 60));
     await db.collection("reminders").doc(reminderId).update({
     	time: newDate
-	});
+	}).catch(error => {
+		console.error("snoozeReminder", error)
+	});;
 };
 
 const getAllReminders = async (userId) => {
