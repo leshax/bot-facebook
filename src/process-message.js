@@ -21,10 +21,12 @@ const sessionClient = new dialogflow.SessionsClient(config);
  */
 const sendMessage = async (response, userId) => {
   console.log("Recieving from Dialogflow...");
+  console.log("Sending to... " + userId);
+  
   const result = response.queryResult;
   //console.log(JSON.stringify(result, null, 4));
   if (result.action === constants.WELCOME_ACTION) {
-    console.log("-sendMessage welcome");
+    console.log("-sendMessage welcome: " + userId);
     let buttons = [facebookApi.generateButton(constants.CREATE_REMINDER),
       facebookApi.generateButton(constants.SHOW_ALL_REMINDERS)
     ];

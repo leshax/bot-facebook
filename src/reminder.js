@@ -70,7 +70,7 @@ const getAllReminders = async (userId) => {
  */
 const getRemindersToFire = async () => {
   console.log('--getRemindersToFire start:');
-  let result = await collection.where('time', '>', new Date()).get();
+  let result = await collection.where('time', '<', new Date()).get();
   if (result.empty) return null;
   result.forEach(function(documentSnapshot) {
     var data = documentSnapshot.data();
@@ -99,6 +99,7 @@ const handleRemindersMessage = async (reminders, showButtons) => {
     console.log('data time: ', new Date(data.time._seconds * 1000));
     console.log('userId ', userId);
     var timezoneName = await facebookApi.getUserTimeZoneName(userId);
+    console.log("Timezone name: ", timezoneName);
     //let options = {"timeZone": timezoneName, "hour12": false, "year": "numeric", "month":"2-digit","day":"2-digit"};
     var optionsShort = {
       "timeZone": timezoneName.timezone,
@@ -135,6 +136,8 @@ const handleRemindersMessage = async (reminders, showButtons) => {
       ];
     }
     let debugInfo = "[DEBUG] UserLocalTime: " + localTimeStr + ", " + fired + ", " + timezoneName.timezone;
+    console.log("handleRemindersMessage userId", userId);
+    console.log("handleRemindersMessage reminderId", reminderId);
     await facebookApi.sendGenericTemplate(userId, "Reminder at " + localMinutes, debugInfo, constants.ALARM_IMG_LINK, buttons);
   });
 }
@@ -158,7 +161,7 @@ const sendAllReminders = async (userId) => {
  */
 const sendToFireReminders = async () => {
   let reminders = await getRemindersToFire();
-  console.log("sendToFireReminders: " + sendToFireReminders);
+  console.log("sendToFireReminders: " + reminders);
   if (reminders) {
     await handleRemindersMessage(reminders, true);
   }

@@ -45,6 +45,11 @@ const sendButtons = (userId, text, buttons) => {
  * @return {promise} Fetch result as a promise
  */
 const sendGenericTemplate = (userId, title, subtitle, pic_url, buttons) => {
+  console.log("sendGenericTemplate userId", userId);
+  console.log("sendGenericTemplate title", title);
+  console.log("sendGenericTemplate subtitle", subtitle);
+  console.log("sendGenericTemplate pic_url", pic_url);
+  console.log("sendGenericTemplate buttons", buttons);
   return fetch(
     `https://graph.facebook.com/v2.6/me/messages?access_token=${FACEBOOK_ACCESS_TOKEN}`, {
       headers: {
@@ -76,9 +81,11 @@ const sendGenericTemplate = (userId, title, subtitle, pic_url, buttons) => {
           }
         }
       })
+    }).then(e => {
+      console.log("sendGenericTemplate", e);
     }).catch(error => {
-    console.error("sendGenericTemplate", error)
-  });
+      console.error("sendGenericTemplate", error);
+    });
 };
 
 /**

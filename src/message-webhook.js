@@ -32,12 +32,26 @@ const tick = async (req, res) => {
     await reminder.sendToFireReminders();
     res.status(200).end();
   } catch (e) {
-    console.error('tick', error);
+    console.error('tick', e);
     res.status(400).end();
   }
 }
 
+/*
+*
+* Simulation of tick function for no-HTTP calls
+*
+*/
+const internalTick = async () => {
+  try {
+    await reminder.sendToFireReminders();
+  } catch (e) {
+    console.error('tick', e);
+  }
+}
+
 module.exports = {
+  internalTick: internalTick,
   tick: tick,
   webhook: webhook
 }
