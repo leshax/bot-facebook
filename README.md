@@ -1,23 +1,22 @@
-# bot
+# 
 
 
 1. First conversation with Begin button
-![First conversation](./bot-images/1.png)
+![1](https://user-images.githubusercontent.com/2027050/55683631-149c1e00-5942-11e9-888a-a99513d0785f.png)
 
 2. Bot greetings 
-![Bot greetings](./bot-images/greeting.png)
+![greeting](https://user-images.githubusercontent.com/2027050/55683626-1239c400-5942-11e9-9fd6-3eaf7f0832ac.png)
 
-3. Bot greetings 
-![Bot greetings ](./bot-images/greeting.png)
+3. Set reminder 
+![reminder-set](https://user-images.githubusercontent.com/2027050/55683629-14038780-5942-11e9-869b-e34e9d6904aa.png)
 
-4. Set reminder 
-![Set reminder](./bot-images/reminder set.png)
+4. Reminder alert 
+![reminder-alert](https://user-images.githubusercontent.com/2027050/55683627-12d25a80-5942-11e9-8d29-e7b662714831.png)
 
-5. Reminder alert 
-![Reminder alert ](./bot-images/reminder-alert.png)
+5. Accept reminder
+![accepted](https://user-images.githubusercontent.com/2027050/55683625-11a12d80-5942-11e9-9037-22dc948805eb.png)
 
-6. Accept reminder
-![Accepted screenshot](./bot-images/accepted.png)
+6. Snooze
+![snooze](https://user-images.githubusercontent.com/2027050/55683630-149c1e00-5942-11e9-90da-98b6948a9ec2.png)
 
-7. Snooze
-![Snooze screenshot](./bot-images/snooze.png)
+
