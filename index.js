@@ -24,8 +24,6 @@ app.listen(8080, () => console.log('Express server is listening on port 8080'));
 	TODO: 
 	Use Google Cloud Scheduler to schedule reminder check instead, so we can scale vertically.
 */
-messageWebhook.internalTick();
 setInterval(function() {
-	//console.log("Tick!");
-	//await messageWebhook.tick();
-}, 10 * 1000);
+	messageWebhook.internalTick();
+}, 60 * 1000);

@@ -22,7 +22,7 @@ const sessionClient = new dialogflow.SessionsClient(config);
 const sendMessage = async (response, userId) => {
   console.log("Recieving from Dialogflow...");
   console.log("Sending to... " + userId);
-  
+
   const result = response.queryResult;
   //console.log(JSON.stringify(result, null, 4));
   if (result.action === constants.WELCOME_ACTION) {
@@ -108,7 +108,7 @@ const initUserTimeZone = async (userId) => {
     cache[userId] = await facebookApi.getUserTimeZoneName(userId);
   }
   console.log(cache);
-}
+};
 
 /**
  * Transfers message to dialogflow
@@ -136,7 +136,7 @@ module.exports.processHook = async (event) => {
     queryParams: {
       timeZone: cache[userId].timezone
     }
-  };
+  }; 
   try {
     let responses = await sessionClient.detectIntent(request);
     await handleActions(responses[0], userId);
@@ -146,4 +146,4 @@ module.exports.processHook = async (event) => {
     console.dir(e);
   }
 
-}
+};

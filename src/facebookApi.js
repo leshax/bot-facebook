@@ -82,7 +82,7 @@ const sendGenericTemplate = (userId, title, subtitle, pic_url, buttons) => {
         }
       })
     }).then(e => {
-      console.log("sendGenericTemplate", e);
+      //console.log("sendGenericTemplate", e);
     }).catch(error => {
       console.error("sendGenericTemplate", error);
     });
@@ -118,6 +118,25 @@ const sendTextMessage = (userId, text) => {
 };
 
 /**
+ * Generates a payload for a facebook generic template button
+ * @param {string} action - action name for server (ACCEPT_REMINDER, SNOOZE_REMINDER)
+ * @param {string} userId - user facebook id
+ * @param {date} time - time of a reminder
+ * @param {string} reminderId - id of a reminder
+ * @return {string} - string for facebook genric template
+ */
+ /* to fix */
+const generatePayload = (action, userId, time, reminderId) => {
+  let obj = {};
+  obj[action] = {
+      "userId" : userId,
+      "time" : time,
+      "reminderId" : reminderId
+  }
+  return JSON.stringify(obj);
+};
+
+/**
  * Generates a button for a facebook message
  * @param {string} text - Text of a button
  * @param {string} payload - JSON.stringified object of a payload.
@@ -129,7 +148,7 @@ const generateButton = (text, payload) => {
     "type": constants.POSTBACK_BUTTON_TYPE,
     "payload": payload,
     "title": text
-  }
+  } 
 };
 
 /**
@@ -145,19 +164,7 @@ const getLocationByUserId = (userId) => {
       },
       method: 'GET'
     }).then(res => res.json());
-}
-
-/*
-const getOffsetByUserId = (userId) => {
-  return fetch(
-    `https://graph.facebook.com/v2.8/${userId}?fields=timezone&access_token=${FACEBOOK_ACCESS_TOKEN}`, {
-      headers: {
-        'Content-Type': constants.CONTENT_TYPE.JSON,
-      },
-      method: 'GET'
-    }).then(res => res.json());
-};*/
-
+};
 
 /**
  * Recieves a user timezone name by location(lat/lon) 
@@ -173,7 +180,7 @@ const getTimezoneByCoordinates = (latitude, longitude) => {
       },
       method: 'GET'
     }).then(res => res.json());
-}
+};
 
 /**
  * Gets a time zone name by user location 
@@ -205,14 +212,14 @@ const getUserTimeZoneName = async (userId) => {
       "isDefaultValue": isDefaultValue
     };
   }
-}
+};
 return module.exports = {
   sendTextMessage: sendTextMessage,
   sendButtons: sendButtons,
   generateButton: generateButton,
-  //getOffsetByUserId: getOffsetByUserId,
   getLocationByUserId: getLocationByUserId,
   getTimezoneByCoordinates: getTimezoneByCoordinates,
   sendGenericTemplate: sendGenericTemplate,
-  getUserTimeZoneName: getUserTimeZoneName
+  getUserTimeZoneName: getUserTimeZoneName,
+  generatePayload: generatePayload
 };
