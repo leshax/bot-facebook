@@ -2,22 +2,22 @@
 
 
 1. First conversation with Begin button
-![First conversation](/bit-images/1.png)
+![First conversation](./bot-images/1.png)
 
 2. Bot greetings 
-![Bot greetings](/bit-images/greeting.png)
+![Bot greetings](./bot-images/greeting.png)
 
 3. Bot greetings 
-![Bot greetings ](/bit-images/greeting.png)
+![Bot greetings ](./bot-images/greeting.png)
 
 4. Set reminder 
-![Set reminder](/bit-images/reminder set.png)
+![Set reminder](./bot-images/reminder set.png)
 
 5. Reminder alert 
-![Reminder alert ](/bit-images/reminder-alert.png)
+![Reminder alert ](./bot-images/reminder-alert.png)
 
 6. Accept reminder
-![Accepted screenshot](/bit-images/accepted.png)
+![Accepted screenshot](./bot-images/accepted.png)
 
 7. Snooze
-![Snooze screenshot](/bit-images/snooze.png)
+![Snooze screenshot](./bot-images/snooze.png)
